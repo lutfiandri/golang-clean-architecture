@@ -4,6 +4,11 @@ import (
 	"strconv"
 
 	"github.com/lutfiandri/golang-clean-architecture/internal/config"
+	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/controller.go"
+	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/router"
+	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
+	"github.com/lutfiandri/golang-clean-architecture/internal/repository"
+	"github.com/lutfiandri/golang-clean-architecture/internal/usecase"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +23,22 @@ type BootstrapAppConfig struct {
 	Validate *validator.Validate
 }
 
-func BootstrapApp(bootstrapAppConfig BootstrapAppConfig) {
-	bootstrapAppConfig.App.Listen(":" + strconv.Itoa(config.APP_PORT))
+func BootstrapApp(cfg BootstrapAppConfig) {
+	// setup automigrate
+	cfg.DB.AutoMigrate(&entity.Organization{}, &entity.Role{}, &entity.User{})
+
+	// repository
+	organizationRepository := repository.NewOrganizationRepository(cfg.Log)
+
+	// usecase
+	organizationUseCase := usecase.NewOrganizationUseCase(cfg.DB, organizationRepository)
+
+	// controller
+	organizationController := controller.NewOrganizationController(cfg.App, cfg.Validate, organizationUseCase)
+
+	// router
+	router.StartOrganizationRouter(cfg.App, organizationController)
+
+	// listen
+	cfg.App.Listen(":" + strconv.Itoa(config.APP_PORT))
 }

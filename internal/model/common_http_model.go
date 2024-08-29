@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+type PageRequest struct {
+	Page *uint `json:"page"`
+	Size *uint `json:"size"`
+}
+
 type BaseResponse struct {
 	ID        uint      `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
@@ -30,10 +35,10 @@ type ErrorResponse struct {
 }
 
 type PageMetadata struct {
-	Page      int   `json:"page"`
-	Size      int   `json:"size"`
-	TotalItem int64 `json:"total_item"`
-	TotalPage int64 `json:"total_page"`
+	Page      uint   `json:"page"`
+	Size      uint   `json:"size"`
+	TotalItem uint64 `json:"total_item"`
+	TotalPage uint64 `json:"total_page"`
 }
 
 // helper

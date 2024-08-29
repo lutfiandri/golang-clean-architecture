@@ -14,7 +14,7 @@ type ParseOptions struct {
 	ParseParams bool
 }
 
-func ParseAndValidateRequest[T any](c *fiber.Ctx, validate validator.Validate, request *T, options ParseOptions) error {
+func ParseAndValidateRequest[T any](c *fiber.Ctx, validate *validator.Validate, request *T, options ParseOptions) error {
 	// reject if request is not pointer
 	value := reflect.ValueOf(request)
 	if value.Kind() != reflect.Pointer {
@@ -45,6 +45,7 @@ func ParseAndValidateRequest[T any](c *fiber.Ctx, validate validator.Validate, r
 	// validate
 	if err := validate.Struct(request); err != nil {
 		errs := err.(validator.ValidationErrors)
+
 		validationErrorsResponse := parseValidationError[T](errs, *request)
 		c.Locals("validation_errors_response", validationErrorsResponse)
 
