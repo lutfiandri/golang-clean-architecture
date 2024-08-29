@@ -1,9 +1,12 @@
 package bootstrap
 
 import (
+	"strconv"
+
+	"github.com/lutfiandri/golang-clean-architecture/internal/config"
+
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v3"
-	"github.com/spf13/viper"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -13,11 +16,8 @@ type BootstrapAppConfig struct {
 	DB       *gorm.DB
 	Log      *zap.Logger
 	Validate *validator.Validate
-	Config   *viper.Viper
 }
 
-func BootstrapApp(config *BootstrapAppConfig) {
-	config.App.Listen(":"+config.Config.GetString("APP_PORT"), fiber.ListenConfig{
-		EnablePrefork: config.Config.GetBool("APP_PREFORK"),
-	})
+func BootstrapApp(bootstrapAppConfig BootstrapAppConfig) {
+	bootstrapAppConfig.App.Listen(":" + strconv.Itoa(config.APP_PORT))
 }
