@@ -27,8 +27,8 @@ type Response struct {
 }
 
 type PageResponse struct {
-	Data         any          `json:"data,omitempty"`
-	PageMetadata PageMetadata `json:"meta,omitempty"`
+	Data         any           `json:"data,omitempty"`
+	PageMetadata *PageMetadata `json:"meta,omitempty"`
 }
 
 type ErrorResponse struct {
@@ -44,18 +44,19 @@ type PageMetadata struct {
 }
 
 // helper
-func NewResponse(data any) Response {
-	return Response{
+func NewResponse(data any) *Response {
+	return &Response{
 		Data: data,
 	}
 }
 
-func NewPageResponse(data any, metadata PageMetadata) PageResponse {
-	return PageResponse{
+func NewPageResponse(data any, metadata *PageMetadata) *PageResponse {
+	return &PageResponse{
 		Data:         data,
 		PageMetadata: metadata,
 	}
 }
+
 func NewErrorResponse(err error, validationErrors []ValidationErrorResponse) ErrorResponse {
 	return ErrorResponse{
 		Error:            err.Error(),

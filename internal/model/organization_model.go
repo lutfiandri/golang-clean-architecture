@@ -11,6 +11,20 @@ type CreateOrganizationRequest struct {
 	Description *string `json:"description"`
 }
 
+type GetOrganizationRequest struct {
+	ID uint `param:"id" validate:"required"`
+}
+
 type GetManyOrganizationRequest struct {
 	PageRequest
+}
+
+type UpdateOrganizationRequest struct {
+	ID          uint    `json:"id" validate:"required"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+}
+
+type DeleteOrganizationRequest struct {
+	ID uint `param:"id" validate:"required"`
 }

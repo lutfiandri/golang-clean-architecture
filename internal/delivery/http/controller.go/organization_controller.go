@@ -11,6 +11,9 @@ import (
 type OrganizationController interface {
 	Create(c *fiber.Ctx) error
 	GetMany(c *fiber.Ctx) error
+	Get(c *fiber.Ctx) error
+	Update(c *fiber.Ctx) error
+	Delete(c *fiber.Ctx) error
 }
 
 type organizationController struct {
@@ -34,12 +37,11 @@ func (controller *organizationController) Create(c *fiber.Ctx) error {
 		return err
 	}
 
-	result, err := controller.organizationUseCase.Create(&request)
+	response, err := controller.organizationUseCase.Create(&request)
 	if err != nil {
 		return err
 	}
 
-	response := model.NewResponse(result)
 	return c.JSON(response)
 }
 
@@ -50,11 +52,55 @@ func (controller *organizationController) GetMany(c *fiber.Ctx) error {
 		return err
 	}
 
-	result, pageMeta, err := controller.organizationUseCase.GetMany(&request)
+	response, err := controller.organizationUseCase.GetMany(&request)
 	if err != nil {
 		return err
 	}
 
-	response := model.NewPageResponse(result, *pageMeta)
+	return c.JSON(response)
+}
+
+func (controller *organizationController) Get(c *fiber.Ctx) error {
+	var request model.GetOrganizationRequest
+	parseOption := helper.ParseOptions{ParseParams: true}
+	if err := helper.ParseAndValidateRequest[model.GetOrganizationRequest](c, controller.validate, &request, parseOption); err != nil {
+		return err
+	}
+
+	response, err := controller.organizationUseCase.Get(&request)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(response)
+}
+
+func (controller *organizationController) Update(c *fiber.Ctx) error {
+	var request model.UpdateOrganizationRequest
+	parseOption := helper.ParseOptions{ParseBody: true, ParseParams: true}
+	if err := helper.ParseAndValidateRequest[model.UpdateOrganizationRequest](c, controller.validate, &request, parseOption); err != nil {
+		return err
+	}
+
+	response, err := controller.organizationUseCase.Update(&request)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(response)
+}
+
+func (controller *organizationController) Delete(c *fiber.Ctx) error {
+	var request model.DeleteOrganizationRequest
+	parseOption := helper.ParseOptions{ParseParams: true}
+	if err := helper.ParseAndValidateRequest[model.DeleteOrganizationRequest](c, controller.validate, &request, parseOption); err != nil {
+		return err
+	}
+
+	response, err := controller.organizationUseCase.Delete(&request)
+	if err != nil {
+		return err
+	}
+
 	return c.JSON(response)
 }
