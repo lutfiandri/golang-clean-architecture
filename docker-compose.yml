@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    profiles:
+      - prod
     ports:
       - '${APP_PORT}:${APP_PORT}'
     depends_on:
@@ -12,7 +14,8 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: golang_clean_architecture_db
+    profiles:
+      - dev
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
