@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
+	"github.com/lutfiandri/golang-clean-architecture/internal/helper"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model/converter"
 	"go.uber.org/zap"
@@ -11,7 +12,7 @@ import (
 type OrganizationRepository interface {
 	Create(db *gorm.DB, request *model.CreateOrganizationRequest) (*model.OrganizationResponse, error)
 	// Get(db *gorm.DB, request *model.)
-	// GetMany()
+	GetMany(db *gorm.DB, request *model.GetManyOrganizationRequest) ([]*model.OrganizationResponse, *model.PageMetadata, error)
 	// Update()
 	// Delete()
 }
@@ -36,8 +37,20 @@ func (repository *organizationRepository) Create(db *gorm.DB, request *model.Cre
 		return nil, result.Error
 	}
 
-	response := converter.OrganizationToResponse(organization)
-	return &response, nil
+	response := converter.OrganizationToResponse(&organization)
+	return response, nil
 }
 
-// func (repository *organizationRepository)
+func (repository *organizationRepository) GetMany(db *gorm.DB, request *model.GetManyOrganizationRequest) ([]*model.OrganizationResponse, *model.PageMetadata, error) {
+	var organizations []*entity.Organization
+
+	result := db.Scopes(helper.PaginateGorm(request.Page, request.Size)).Find(&organizations)
+	if result.Error != nil {
+		return nil, nil, result.Error
+	}
+
+	response := converter.OrganizationToResponseMany(organizations)
+	pageMetadata := helper.GetPageMetadata(db, &entity.Organization{}, request.Page, request.Size)
+
+	return response, pageMetadata, nil
+}

@@ -1,10 +1,12 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type PageRequest struct {
-	Page *uint `json:"page"`
-	Size *uint `json:"size"`
+	Page *uint `query:"page"`
+	Size *uint `query:"size"`
 }
 
 type BaseResponse struct {
@@ -48,7 +50,7 @@ func NewResponse(data any) Response {
 	}
 }
 
-func NewPageResponse[T any](data []T, metadata PageMetadata) PageResponse {
+func NewPageResponse(data any, metadata PageMetadata) PageResponse {
 	return PageResponse{
 		Data:         data,
 		PageMetadata: metadata,

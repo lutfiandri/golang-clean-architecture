@@ -10,6 +10,7 @@ import (
 
 type OrganizationController interface {
 	Create(c *fiber.Ctx) error
+	GetMany(c *fiber.Ctx) error
 }
 
 type organizationController struct {
@@ -39,5 +40,21 @@ func (controller *organizationController) Create(c *fiber.Ctx) error {
 	}
 
 	response := model.NewResponse(result)
+	return c.JSON(response)
+}
+
+func (controller *organizationController) GetMany(c *fiber.Ctx) error {
+	var request model.GetManyOrganizationRequest
+	parseOption := helper.ParseOptions{ParseQuery: true}
+	if err := helper.ParseAndValidateRequest[model.GetManyOrganizationRequest](c, controller.validate, &request, parseOption); err != nil {
+		return err
+	}
+
+	result, pageMeta, err := controller.organizationUseCase.GetMany(&request)
+	if err != nil {
+		return err
+	}
+
+	response := model.NewPageResponse(result, *pageMeta)
 	return c.JSON(response)
 }

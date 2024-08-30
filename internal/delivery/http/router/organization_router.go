@@ -9,4 +9,5 @@ func StartOrganizationRouter(app *fiber.App, controller controller.OrganizationC
 	api := app.Group("/organizations")
 
 	api.Post("/", controller.Create)
+	api.Get("/", controller.GetMany)
 }

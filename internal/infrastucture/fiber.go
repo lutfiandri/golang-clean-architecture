@@ -23,7 +23,9 @@ func NewFiber() *fiber.App {
 
 	app.Use(healthcheck.New())
 	app.Use(logger.New())
-	app.Use(recover.New())
+	app.Use(recover.New(recover.Config{
+		EnableStackTrace: true,
+	}))
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: config.CORS_ALLOW_ORIGIN,
 		AllowMethods: "GET, POST, PUT, PATCH, DELETE",
