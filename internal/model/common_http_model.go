@@ -12,7 +12,7 @@ type PageRequest struct {
 type BaseResponse struct {
 	ID        uint      `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"udpated_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type ValidationErrorResponse struct {
@@ -27,8 +27,8 @@ type Response struct {
 }
 
 type PageResponse struct {
-	Data         any           `json:"data,omitempty"`
-	PageMetadata *PageMetadata `json:"meta,omitempty"`
+	Data     any       `json:"data,omitempty"`
+	PageMeta *PageMeta `json:"meta,omitempty"`
 }
 
 type ErrorResponse struct {
@@ -36,7 +36,7 @@ type ErrorResponse struct {
 	ValidationErrors []ValidationErrorResponse `json:"validation_errors"`
 }
 
-type PageMetadata struct {
+type PageMeta struct {
 	Page      uint   `json:"page"`
 	Size      uint   `json:"size"`
 	TotalItem uint64 `json:"total_item"`
@@ -50,10 +50,10 @@ func NewResponse(data any) *Response {
 	}
 }
 
-func NewPageResponse(data any, metadata *PageMetadata) *PageResponse {
+func NewPageResponse(data any, metadata *PageMeta) *PageResponse {
 	return &PageResponse{
-		Data:         data,
-		PageMetadata: metadata,
+		Data:     data,
+		PageMeta: metadata,
 	}
 }
 

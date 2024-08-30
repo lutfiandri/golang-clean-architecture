@@ -37,11 +37,12 @@ func (controller *organizationController) Create(c *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := controller.organizationUseCase.Create(&request)
+	result, err := controller.organizationUseCase.Create(&request)
 	if err != nil {
 		return err
 	}
 
+	response := model.NewResponse(result)
 	return c.JSON(response)
 }
 
@@ -52,11 +53,12 @@ func (controller *organizationController) GetMany(c *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := controller.organizationUseCase.GetMany(&request)
+	result, pageMeta, err := controller.organizationUseCase.GetMany(&request)
 	if err != nil {
 		return err
 	}
 
+	response := model.NewPageResponse(result, pageMeta)
 	return c.JSON(response)
 }
 
@@ -67,11 +69,12 @@ func (controller *organizationController) Get(c *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := controller.organizationUseCase.Get(&request)
+	result, err := controller.organizationUseCase.Get(&request)
 	if err != nil {
 		return err
 	}
 
+	response := model.NewResponse(result)
 	return c.JSON(response)
 }
 
@@ -82,11 +85,12 @@ func (controller *organizationController) Update(c *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := controller.organizationUseCase.Update(&request)
+	result, err := controller.organizationUseCase.Update(&request)
 	if err != nil {
 		return err
 	}
 
+	response := model.NewResponse(result)
 	return c.JSON(response)
 }
 
@@ -97,10 +101,11 @@ func (controller *organizationController) Delete(c *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := controller.organizationUseCase.Delete(&request)
+	err := controller.organizationUseCase.Delete(&request)
 	if err != nil {
 		return err
 	}
 
+	response := model.NewResponse(nil)
 	return c.JSON(response)
 }

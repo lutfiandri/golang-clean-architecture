@@ -1,17 +1,19 @@
 package usecase
 
 import (
+	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model"
+	"github.com/lutfiandri/golang-clean-architecture/internal/model/converter"
 	"github.com/lutfiandri/golang-clean-architecture/internal/repository"
 	"gorm.io/gorm"
 )
 
 type OrganizationUseCase interface {
-	Create(request *model.CreateOrganizationRequest) (*model.Response, error)
-	GetMany(request *model.GetManyOrganizationRequest) (*model.PageResponse, error)
-	Get(request *model.GetOrganizationRequest) (*model.Response, error)
-	Update(request *model.UpdateOrganizationRequest) (*model.Response, error)
-	Delete(request *model.DeleteOrganizationRequest) (*model.Response, error)
+	Create(request *model.CreateOrganizationRequest) (*model.OrganizationResponse, error)
+	GetMany(request *model.GetManyOrganizationRequest) ([]*model.OrganizationResponse, *model.PageMeta, error)
+	Get(request *model.GetOrganizationRequest) (*model.OrganizationResponse, error)
+	Update(request *model.UpdateOrganizationRequest) (*model.OrganizationResponse, error)
+	Delete(request *model.DeleteOrganizationRequest) error
 }
 
 type organizationUseCase struct {
@@ -26,78 +28,88 @@ func NewOrganizationUseCase(db *gorm.DB, organizationRepository repository.Organ
 	}
 }
 
-func (usecase *organizationUseCase) Create(request *model.CreateOrganizationRequest) (*model.Response, error) {
+func (usecase *organizationUseCase) Create(request *model.CreateOrganizationRequest) (*model.OrganizationResponse, error) {
 	tx := usecase.db.Begin()
 	defer tx.Commit()
 
-	result, err := usecase.organizationRepository.Create(tx, request)
+	organization := entity.Organization{
+		Name:        request.Name,
+		Description: request.Description,
+	}
+
+	err := usecase.organizationRepository.Create(tx, &organization)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	response := model.NewResponse(result)
+	response := converter.OrganizationToResponse(&organization)
 	return response, nil
 }
 
-func (usecase *organizationUseCase) GetMany(request *model.GetManyOrganizationRequest) (*model.PageResponse, error) {
+func (usecase *organizationUseCase) GetMany(request *model.GetManyOrganizationRequest) ([]*model.OrganizationResponse, *model.PageMeta, error) {
 	tx := usecase.db.Begin()
 	defer tx.Commit()
 
-	result, pageMeta, err := usecase.organizationRepository.GetMany(tx, request)
+	organizations, pageMeta, err := usecase.organizationRepository.GetMany(tx, &request.PageRequest)
+	if err != nil {
+		tx.Rollback()
+		return nil, nil, err
+	}
+
+	response := converter.OrganizationToResponseMany(organizations)
+	return response, pageMeta, nil
+}
+
+func (usecase *organizationUseCase) Get(request *model.GetOrganizationRequest) (*model.OrganizationResponse, error) {
+	tx := usecase.db.Begin()
+	defer tx.Commit()
+
+	result, err := usecase.organizationRepository.Get(tx, &request.ID)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	response := model.NewPageResponse(result, pageMeta)
+	response := converter.OrganizationToResponse(result)
 	return response, nil
 }
 
-func (usecase *organizationUseCase) Get(request *model.GetOrganizationRequest) (*model.Response, error) {
+func (usecase *organizationUseCase) Update(request *model.UpdateOrganizationRequest) (*model.OrganizationResponse, error) {
 	tx := usecase.db.Begin()
 	defer tx.Commit()
 
-	result, err := usecase.organizationRepository.Get(tx, request)
+	organization := entity.Organization{
+		BaseEntity:  entity.BaseEntity{ID: request.ID},
+		Name:        request.Name,
+		Description: request.Description,
+	}
+
+	err := usecase.organizationRepository.Update(tx, &organization.ID, &organization)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	response := model.NewResponse(result)
+	response := converter.OrganizationToResponse(&organization)
 	return response, nil
 }
 
-func (usecase *organizationUseCase) Update(request *model.UpdateOrganizationRequest) (*model.Response, error) {
+func (usecase *organizationUseCase) Delete(request *model.DeleteOrganizationRequest) error {
 	tx := usecase.db.Begin()
 	defer tx.Commit()
 
-	result, err := usecase.organizationRepository.Update(tx, request)
+	_, err := usecase.organizationRepository.Get(tx, &request.ID)
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return err
 	}
 
-	response := model.NewResponse(result)
-	return response, nil
-}
-
-func (usecase *organizationUseCase) Delete(request *model.DeleteOrganizationRequest) (*model.Response, error) {
-	tx := usecase.db.Begin()
-	defer tx.Commit()
-
-	_, err := usecase.organizationRepository.Get(tx, &model.GetOrganizationRequest{ID: request.ID})
+	err = usecase.organizationRepository.Delete(tx, &request.ID)
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return err
 	}
 
-	err = usecase.organizationRepository.Delete(tx, request)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	response := model.NewResponse(nil)
-	return response, nil
+	return nil
 }

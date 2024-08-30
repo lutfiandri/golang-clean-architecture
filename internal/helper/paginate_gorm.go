@@ -18,22 +18,25 @@ func PaginateGorm(page, size *uint) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func GetPageMetadata(db *gorm.DB, entity any, page, size *uint) *model.PageMetadata {
+func GetPageMeta(db *gorm.DB, entity any, page, size *uint) (*model.PageMeta, error) {
 	var itemCount int64
-	db.Model(entity).Count(&itemCount)
+	result := db.Model(entity).Count(&itemCount)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 
 	p, s := getPageSize(page, size)
 
 	pageCount := int64(math.Ceil(float64(itemCount) / float64(s)))
 
-	pageMetadata := model.PageMetadata{
+	pageMeta := model.PageMeta{
 		Page:      uint(p),
 		Size:      uint(s),
 		TotalItem: uint64(itemCount),
 		TotalPage: uint64(pageCount),
 	}
 
-	return &pageMetadata
+	return &pageMeta, nil
 }
 
 func getPageSize(page, size *uint) (int, int) {

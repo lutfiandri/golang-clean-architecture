@@ -1,22 +1,19 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
 	"github.com/lutfiandri/golang-clean-architecture/internal/helper"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model"
-	"github.com/lutfiandri/golang-clean-architecture/internal/model/converter"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type OrganizationRepository interface {
-	Create(db *gorm.DB, request *model.CreateOrganizationRequest) (*model.OrganizationResponse, error)
-	GetMany(db *gorm.DB, request *model.GetManyOrganizationRequest) ([]*model.OrganizationResponse, *model.PageMetadata, error)
-	Get(db *gorm.DB, request *model.GetOrganizationRequest) (*model.OrganizationResponse, error)
-	Update(db *gorm.DB, request *model.UpdateOrganizationRequest) (*model.OrganizationResponse, error)
-	Delete(db *gorm.DB, request *model.DeleteOrganizationRequest) error
+	Create(db *gorm.DB, organization *entity.Organization) error
+	GetMany(db *gorm.DB, pageMeta *model.PageRequest) ([]*entity.Organization, *model.PageMeta, error)
+	Get(db *gorm.DB, id *uint) (*entity.Organization, error)
+	Update(db *gorm.DB, id *uint, organization *entity.Organization) error
+	Delete(db *gorm.DB, id *uint) error
 }
 
 type organizationRepository struct {
@@ -29,69 +26,53 @@ func NewOrganizationRepository(log *zap.Logger) OrganizationRepository {
 	}
 }
 
-func (repository *organizationRepository) Create(db *gorm.DB, request *model.CreateOrganizationRequest) (*model.OrganizationResponse, error) {
-	organization := entity.Organization{
-		Name:        request.Name,
-		Description: request.Description,
-	}
-
+func (repository *organizationRepository) Create(db *gorm.DB, organization *entity.Organization) error {
 	if result := db.Create(&organization); result.Error != nil {
-		return nil, result.Error
+		return result.Error
 	}
 
-	response := converter.OrganizationToResponse(&organization)
-	return response, nil
+	return nil
 }
 
-func (repository *organizationRepository) GetMany(db *gorm.DB, request *model.GetManyOrganizationRequest) ([]*model.OrganizationResponse, *model.PageMetadata, error) {
+func (repository *organizationRepository) GetMany(db *gorm.DB, pageRequest *model.PageRequest) ([]*entity.Organization, *model.PageMeta, error) {
 	var organizations []*entity.Organization
 
-	result := db.Scopes(helper.PaginateGorm(request.Page, request.Size)).Find(&organizations)
+	result := db.Scopes(helper.PaginateGorm(pageRequest.Page, pageRequest.Size)).Find(&organizations)
 	if result.Error != nil {
 		return nil, nil, result.Error
 	}
 
-	response := converter.OrganizationToResponseMany(organizations)
-	pageMetadata := helper.GetPageMetadata(db, &entity.Organization{}, request.Page, request.Size)
+	pageMeta, err := helper.GetPageMeta(db, &entity.Organization{}, pageRequest.Page, pageRequest.Size)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return response, pageMetadata, nil
+	return organizations, pageMeta, nil
 }
 
-func (repository *organizationRepository) Get(db *gorm.DB, request *model.GetOrganizationRequest) (*model.OrganizationResponse, error) {
+func (repository *organizationRepository) Get(db *gorm.DB, id *uint) (*entity.Organization, error) {
 	var organization entity.Organization
 
-	result := db.Where("id = ?", request.ID).First(&organization)
+	result := db.Where("id = ?", id).First(&organization)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	response := converter.OrganizationToResponse(&organization)
-
-	return response, nil
+	return &organization, nil
 }
 
-func (repository *organizationRepository) Update(db *gorm.DB, request *model.UpdateOrganizationRequest) (*model.OrganizationResponse, error) {
-	organization := entity.Organization{
-		BaseEntity:  entity.BaseEntity{ID: request.ID},
-		Name:        request.Name,
-		Description: request.Description,
-	}
-
-	log.Printf("%+v\n", organization)
-
+func (repository *organizationRepository) Update(db *gorm.DB, id *uint, organization *entity.Organization) error {
 	result := db.Save(&organization)
 	if result.Error != nil {
-		return nil, result.Error
+		return result.Error
 	}
 
-	response := converter.OrganizationToResponse(&organization)
-
-	return response, nil
+	return nil
 }
 
-func (repository *organizationRepository) Delete(db *gorm.DB, request *model.DeleteOrganizationRequest) error {
+func (repository *organizationRepository) Delete(db *gorm.DB, id *uint) error {
 	organization := entity.Organization{
-		BaseEntity: entity.BaseEntity{ID: request.ID},
+		BaseEntity: entity.BaseEntity{ID: *id},
 	}
 
 	result := db.Delete(&organization)
