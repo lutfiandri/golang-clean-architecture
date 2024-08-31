@@ -38,3 +38,20 @@ func NewDatabase(log *zap.Logger) *gorm.DB {
 
 	return db
 }
+
+func NewConnection(user, password, host string, port int) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s sslmode=disable", host, port, user, password)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+func CreateDatabase(db *gorm.DB, dbName string) error {
+	return db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)).Error
+}
+
+func DeleteDatabase(db *gorm.DB, dbName string) error {
+	return db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName)).Error
+}

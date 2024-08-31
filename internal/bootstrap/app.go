@@ -1,9 +1,6 @@
 package bootstrap
 
 import (
-	"strconv"
-
-	"github.com/lutfiandri/golang-clean-architecture/internal/config"
 	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/controller.go"
 	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/router"
 	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
@@ -37,8 +34,5 @@ func BootstrapApp(cfg BootstrapAppConfig) {
 	organizationController := controller.NewOrganizationController(cfg.App, cfg.Validate, organizationUseCase)
 
 	// router
-	router.StartOrganizationRouter(cfg.App, organizationController)
-
-	// listen
-	cfg.App.Listen(":" + strconv.Itoa(config.APP_PORT))
+	router.SetupOrganizationRouter(cfg.App, organizationController)
 }

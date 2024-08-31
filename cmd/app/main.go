@@ -1,13 +1,15 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/lutfiandri/golang-clean-architecture/internal/bootstrap"
 	"github.com/lutfiandri/golang-clean-architecture/internal/config"
-	infrastructure "github.com/lutfiandri/golang-clean-architecture/internal/infrastucture"
+	infrastructure "github.com/lutfiandri/golang-clean-architecture/internal/infrastructure"
 )
 
 func main() {
-	viperConfig := infrastructure.NewViper()
+	viperConfig := infrastructure.NewViper(".env")
 	config.LoadEnv(viperConfig)
 
 	log := infrastructure.NewLogger()
@@ -21,4 +23,6 @@ func main() {
 		Log:      log,
 		Validate: validate,
 	})
+
+	app.Listen(":" + strconv.Itoa(config.APP_PORT))
 }

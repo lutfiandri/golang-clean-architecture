@@ -43,7 +43,7 @@ func (controller *organizationController) Create(c *fiber.Ctx) error {
 	}
 
 	response := model.NewResponse(result)
-	return c.JSON(response)
+	return c.Status(fiber.StatusCreated).JSON(response)
 }
 
 func (controller *organizationController) GetMany(c *fiber.Ctx) error {
