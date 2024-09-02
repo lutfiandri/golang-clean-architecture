@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/exception"
 	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model/converter"
@@ -80,10 +80,9 @@ func (usecase *organizationUseCase) Update(request *model.UpdateOrganizationRequ
 	tx := usecase.db.Begin()
 	defer tx.Commit()
 
-	org, _ := usecase.organizationRepository.Get(tx, &request.ID)
-	if org == nil {
+	if org, err := usecase.organizationRepository.Get(tx, &request.ID); org == nil || err != nil {
 		tx.Rollback()
-		return nil, fiber.NewError(fiber.StatusNotFound, "organization not found")
+		return nil, exception.ErrOrganizationNotFound
 	}
 
 	organization := entity.Organization{
@@ -106,13 +105,12 @@ func (usecase *organizationUseCase) Delete(request *model.DeleteOrganizationRequ
 	tx := usecase.db.Begin()
 	defer tx.Commit()
 
-	_, err := usecase.organizationRepository.Get(tx, &request.ID)
-	if err != nil {
+	if org, err := usecase.organizationRepository.Get(tx, &request.ID); org == nil || err != nil {
 		tx.Rollback()
-		return err
+		return exception.ErrOrganizationNotFound
 	}
 
-	err = usecase.organizationRepository.Delete(tx, &request.ID)
+	err := usecase.organizationRepository.Delete(tx, &request.ID)
 	if err != nil {
 		tx.Rollback()
 		return err

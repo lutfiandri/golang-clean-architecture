@@ -9,4 +9,4 @@ test:
 		./internal/repository
 
 	@go tool cover -html ./test/coverage.out -o ./test/coverage.html
-	@echo "coverage report: ./test/coverage.html"
+	@echo "\ncoverage report: ./test/coverage.html"
