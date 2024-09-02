@@ -3,7 +3,6 @@ package organization_test
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,20 +10,25 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lutfiandri/golang-clean-architecture/internal/bootstrap"
 	"github.com/lutfiandri/golang-clean-architecture/internal/config"
+	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
 	"github.com/lutfiandri/golang-clean-architecture/internal/infrastructure"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
-var app *fiber.App
+var (
+	app *fiber.App
+	db  *gorm.DB
+)
 
-func beforeAll() {
+func bootstrapApp() {
 	viperConfig := infrastructure.NewViper("../../../.env.testing")
 	config.LoadEnv(viperConfig)
 
 	log := infrastructure.NewLogger()
 
-	db := infrastructure.NewDatabase(log)
 	validate := infrastructure.NewValidator()
+	db = infrastructure.NewDatabase(log)
 	app = infrastructure.NewFiber()
 
 	bootstrap.BootstrapApp(bootstrap.BootstrapAppConfig{
@@ -33,19 +37,34 @@ func beforeAll() {
 		Log:      log,
 		Validate: validate,
 	})
-
-	// time.Sleep(5 * time.Second)
 }
 
-func afterAll() {
-	// db.Migrator().DropTable(&entity.Organization{})
-	log.Println("After All")
+func migrateUp() {
+	db.Migrator().DropTable(&entity.Organization{})
+	db.AutoMigrate(&entity.Organization{})
+}
+
+func migrateDown() {
+	db.Migrator().DropTable(&entity.Organization{})
+}
+
+func seed() {
+	tx := db.Begin()
+	seedOrganization(tx)
+	tx.Commit()
 }
 
 func TestMain(m *testing.M) {
-	beforeAll()
+	// before test
+	bootstrapApp()
+	migrateUp()
+	seed()
+
+	// test
 	m.Run()
-	afterAll()
+
+	// after test
+	migrateDown()
 }
 
 // TEST CASES
@@ -58,7 +77,7 @@ func TestCreateOrganization(t *testing.T) {
 		expectedResult map[string]any
 	}{
 		{
-			name: "success: all field",
+			name: "positive all field",
 			body: map[string]any{
 				"name":        "test org 1",
 				"description": "testing organization 1",
@@ -70,7 +89,7 @@ func TestCreateOrganization(t *testing.T) {
 			},
 		},
 		{
-			name: "success: without description",
+			name: "positive without description",
 			body: map[string]any{
 				"name": "test org 1",
 			},
@@ -80,16 +99,16 @@ func TestCreateOrganization(t *testing.T) {
 			},
 		},
 		{
-			name:           "success: without name",
+			name:           "negative: without name",
 			body:           map[string]any{},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: map[string]any{},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			body, err := json.Marshal(tt.body)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			body, err := json.Marshal(test.body)
 			assert.NoError(t, err)
 
 			req := httptest.NewRequest("POST", "/organizations", bytes.NewBuffer(body))
@@ -97,25 +116,20 @@ func TestCreateOrganization(t *testing.T) {
 
 			resp, _ := app.Test(req, -1)
 
-			assert.Equal(t, tt.expectedCode, resp.StatusCode)
+			assert.Equal(t, test.expectedCode, resp.StatusCode)
 
-			// test fields
-			var responseBody map[string]any
-			err = json.NewDecoder(resp.Body).Decode(&responseBody)
-			assert.NoError(t, err)
-
-			if tt.expectedCode < 400 {
+			if test.expectedCode < 400 {
 				// success scenario
+
+				var responseBody map[string]any
+				err = json.NewDecoder(resp.Body).Decode(&responseBody)
+				assert.NoError(t, err)
+
 				responseData := responseBody["data"].(map[string]any)
 
-				log.Printf("response: %+v", responseBody)
-
-				for key, expectedValue := range tt.expectedResult {
+				for key, expectedValue := range test.expectedResult {
 					assert.Equal(t, expectedValue, responseData[key])
 				}
-			} else {
-				// error scenario
-				// assert.Equal(t, tt.expectedResult["message"], responseBody["message"])
 			}
 		})
 	}

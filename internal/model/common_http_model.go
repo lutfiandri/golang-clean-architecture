@@ -32,8 +32,8 @@ type PageResponse struct {
 }
 
 type ErrorResponse struct {
-	Error            string                    `json:"error"`
-	ValidationErrors []ValidationErrorResponse `json:"validation_errors"`
+	Error            string                     `json:"error"`
+	ValidationErrors []*ValidationErrorResponse `json:"validation_errors"`
 }
 
 type PageMeta struct {
@@ -57,8 +57,8 @@ func NewPageResponse(data any, metadata *PageMeta) *PageResponse {
 	}
 }
 
-func NewErrorResponse(err error, validationErrors []ValidationErrorResponse) ErrorResponse {
-	return ErrorResponse{
+func NewErrorResponse(err error, validationErrors []*ValidationErrorResponse) *ErrorResponse {
+	return &ErrorResponse{
 		Error:            err.Error(),
 		ValidationErrors: validationErrors,
 	}

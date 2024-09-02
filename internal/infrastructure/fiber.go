@@ -52,6 +52,10 @@ func NewErrorHandler() fiber.ErrorHandler {
 			code = fiber.StatusNotFound
 		}
 
+		if validationErrorsResponse != nil {
+			code = fiber.StatusBadRequest
+		}
+
 		response := model.NewErrorResponse(err, validationErrorsResponse)
 		return c.Status(code).JSON(response)
 	}

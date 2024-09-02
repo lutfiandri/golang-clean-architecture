@@ -55,11 +55,15 @@ func ParseAndValidateRequest[T any](c *fiber.Ctx, validate *validator.Validate, 
 	return nil
 }
 
-func GetValidationErrorsResponse(c *fiber.Ctx) []model.ValidationErrorResponse {
+func GetValidationErrorsResponse(c *fiber.Ctx) []*model.ValidationErrorResponse {
 	if valErrsResponse, ok := c.Locals("validation_errors_response").([]model.ValidationErrorResponse); ok {
-		return valErrsResponse
+		var valErrs []*model.ValidationErrorResponse
+		for _, valErr := range valErrsResponse {
+			valErrs = append(valErrs, &valErr)
+		}
+		return valErrs
 	}
-	return []model.ValidationErrorResponse{}
+	return nil
 }
 
 func parseValidationError[T any](errs validator.ValidationErrors, request T) []model.ValidationErrorResponse {
