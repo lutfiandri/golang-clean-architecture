@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/controller.go"
+	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/controller"
 	"github.com/lutfiandri/golang-clean-architecture/internal/delivery/http/router"
 	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
 	"github.com/lutfiandri/golang-clean-architecture/internal/repository"
