@@ -21,7 +21,7 @@ type GetManyOrganizationRequest struct {
 
 type UpdateOrganizationRequest struct {
 	ID          uint    `json:"id" validate:"required"`
-	Name        string  `json:"name"`
+	Name        string  `json:"name" validate:"required"`
 	Description *string `json:"description"`
 }
 

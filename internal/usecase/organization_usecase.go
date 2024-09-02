@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/lutfiandri/golang-clean-architecture/internal/entity"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model"
 	"github.com/lutfiandri/golang-clean-architecture/internal/model/converter"
@@ -78,6 +79,12 @@ func (usecase *organizationUseCase) Get(request *model.GetOrganizationRequest) (
 func (usecase *organizationUseCase) Update(request *model.UpdateOrganizationRequest) (*model.OrganizationResponse, error) {
 	tx := usecase.db.Begin()
 	defer tx.Commit()
+
+	org, _ := usecase.organizationRepository.Get(tx, &request.ID)
+	if org == nil {
+		tx.Rollback()
+		return nil, fiber.NewError(fiber.StatusNotFound, "organization not found")
+	}
 
 	organization := entity.Organization{
 		BaseEntity:  entity.BaseEntity{ID: request.ID},

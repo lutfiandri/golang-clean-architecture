@@ -15,7 +15,10 @@ func main() {
 	log := infrastructure.NewLogger()
 	db := infrastructure.NewDatabase(log)
 	validate := infrastructure.NewValidator()
-	app := infrastructure.NewFiber()
+	app := infrastructure.NewFiber(&infrastructure.FiberConfig{
+		HealthCheck: true,
+		Logger:      true,
+	})
 
 	bootstrap.BootstrapApp(bootstrap.BootstrapAppConfig{
 		DB:       db,

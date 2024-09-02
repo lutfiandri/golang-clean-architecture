@@ -14,18 +14,30 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewFiber() *fiber.App {
+type FiberConfig struct {
+	HealthCheck bool
+	Logger      bool
+}
+
+func NewFiber(cfg *FiberConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
 		AppName:      config.APP_NAME,
 		Prefork:      config.APP_PREFORK,
 		ErrorHandler: NewErrorHandler(),
 	})
 
-	app.Use(healthcheck.New())
-	app.Use(logger.New())
+	if cfg.HealthCheck {
+		app.Use(healthcheck.New())
+	}
+
+	if cfg.Logger {
+		app.Use(logger.New())
+	}
+
 	app.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 	}))
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: config.CORS_ALLOW_ORIGIN,
 		AllowMethods: "GET, POST, PUT, PATCH, DELETE",
